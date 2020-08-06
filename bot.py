@@ -4,11 +4,11 @@ import configparser
 config = configparser.ConfigParser()
 config.read("config.ini")
 
-reddit = praw.Reddit(client_id='Jss7fU-QoPxedA',
-                    client_secret='4bRHyJaGXrwLfM5Uy1t9XIva1go',
-                    username='baption0',
-                    password='munamala09',
-                    user_agent='lsf_bot')
+reddit = praw.Reddit(client_id=config['oauth']['client_id'],
+                    client_secret=config['oauth']['client_secret'],
+                    username=config['oauth']['username'],
+                    password=config['oauth']['password'],
+                    user_agent=config['oauth']['user_agent'])
 
 subreddit = reddit.subreddit('LivestreamFails')
 hot_lsf= subreddit.hot(limit=1)
