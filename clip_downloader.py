@@ -39,11 +39,7 @@ def get_twitch_authorization(tcid, tcs) :
     return access_token
 
 def download_mp4_from_link(link, cid, access_token, output_dir) :
-    try:
-        slug = link.split('/')[-1]
-    except IndexError:
-        print(f"link ({link}) is invalid")
-        return
+    slug = link.split('/')[-1]
     download_mp4_from_slug(slug, cid, access_token, output_dir)
     
 def download_mp4_from_slug(slug, cid, access_token, output_dir) :
@@ -83,4 +79,8 @@ if __name__ == "__main__" :
 
     access_token = get_twitch_authorization(twitch_client_id, twitch_client_secret)
     for link in args['<link>'] :
-        download_mp4_from_link(link, twitch_client_id, access_token, output_dir)
+        try:
+            download_mp4_from_link(link, twitch_client_id, access_token, output_dir)
+        except KeyError:
+            print("invalid link")
+            continue
