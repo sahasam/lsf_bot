@@ -34,7 +34,9 @@ def retrieve_mp4_data(slug):
     #https://github.com/amiechen/twitch-batch-loader/blob/master/batchloader.py
     clip_info = requests.get(
         "https://api.twitch.tv/helix/clips?id=" + slug,
-        headers={"access_token": 'hello world'}).json()
+        headers={"Client-ID": 'b9rd7sja03tjfxs7vv1gwk2ep4hh2w', 'Authorization': f'Bearer {access_token}'}).json()
+
+    print(clip_info)
     thumb_url = clip_info['data'][0]['thumbnail_url']
     slice_point = thumb_url.index("-preview-")
     mp4_url = thumb_url[:slice_point] + '.mp4'
@@ -60,7 +62,7 @@ for submission in hot_lsf :
     regex = re.compile('[^a-zA-Z0-9_]')
     clip_title = clip_title.replace(' ', '_')
     out_filename = regex.sub('', clip_title) + '.mp4'
-    output_path = (DOWNLAOD_FOLDER + out_filename)
+    output_path = os.path.join(DOWNLAOD_FOLDER, out_filename)
 
     print('\nDownloading clip slug: ' + slug)
     print('"' + clip_title + '" -> ' + out_filename)
