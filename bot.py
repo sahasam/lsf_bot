@@ -1,5 +1,4 @@
 import praw
-import pycurl
 import configparser
 
 config = configparser.ConfigParser()
@@ -10,8 +9,6 @@ reddit = praw.Reddit(client_id=config['reddit oauth']['client_id'],
                     username=config['reddit oauth']['username'],
                     password=config['reddit oauth']['password'],
                     user_agent=config['reddit oauth']['user_agent'])
-
-curl = pycurl.Curl()
 
 subreddit = reddit.subreddit('LivestreamFails')
 hot_lsf= subreddit.hot(limit=1)
