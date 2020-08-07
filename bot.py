@@ -20,32 +20,12 @@ import urllib.request
 from docopt import docopt
 
 from clip_downloader import get_twitch_authorization
+from clip_downloader import download_mp4_from_link
 
 config = configparser.ConfigParser()
 config.read("config.ini")
 
 DOWNLAOD_FOLDER = os.path.join(os.path.dirname(__file__), "downloads")
-
-def retrieve_mp4_data(slug, access_token):
-    #https://github.com/amiechen/twitch-batch-loader/blob/master/batchloader.py
-    clip_info = requests.get(
-        "https://api.twitch.tv/helix/clips?id=" + slug,
-        headers={"Client-ID": config['twitch oauth']['client_id'], 'Authorization': f'Bearer {access_token}'}).json()
-    print(clip_info)
-
-    thumb_url = clip_info['data'][0]['thumbnail_url']
-    slice_point = thumb_url.index("-preview-")
-    mp4_url = thumb_url[:slice_point] + '.mp4'
-
-    title = clip_info['data'][0]['title']
-
-    return mp4_url, title
-
-#https://github.com/amiechen/twitch-batch-loader/blob/master/batchloader.py
-def dl_progress (count, block_size, total_size) :
-    percent = int(count * block_size * 100 / total_size)
-    sys.stdout.write("\r...%d%%" % percent)
-    sys.stdout.flush()
 
 if __name__ == "__main__" :
     args = docopt(__doc__, version="lsfbot v1.0.0")     
@@ -64,21 +44,11 @@ if __name__ == "__main__" :
     hot_lsf= subreddit.hot(limit=2)
 
     for submission in hot_lsf :
-        slug = submission.url.split('/')[3]
-
         try:
-            mp4_url, clip_title = retrieve_mp4_data(submission.url.split('/')[3], access_token)
+            download_mp4_from_link(submission.url, 
+                                config['twitch oauth']['client_id'], 
+                                access_token, 
+                                DOWNLAOD_FOLDER)
         except IndexError:
-            #found post without a link
+            #invalid link
             continue
-
-        regex = re.compile('[^a-zA-Z0-9_]')
-        clip_title = clip_title.replace(' ', '_')
-        out_filename = regex.sub('', clip_title) + '.mp4'
-        output_path = os.path.join(DOWNLAOD_FOLDER, out_filename)
-
-        print('\nDownloading clip slug: ' + slug)
-        print('"' + clip_title + '" -> ' + out_filename)
-        print(mp4_url)
-        urllib.request.urlretrieve(mp4_url, output_path, reporthook=dl_progress)
-        print('\nDone.')
