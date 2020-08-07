@@ -75,13 +75,16 @@ if __name__ == "__main__" :
     reddit, tw_access_token = get_authorizations()
 
     subreddit = reddit.subreddit('LivestreamFail')
-    hot_lsf= subreddit.hot(limit=1)
+    hot_lsf= subreddit.hot(limit=2)
 
-    total_vid_time = 0
     for submission in hot_lsf :
         slug = submission.url.split('/')[3]
 
-        mp4_url, clip_title = retrieve_mp4_data(submission.url.split('/')[3], tw_access_token)
+        try:
+            mp4_url, clip_title = retrieve_mp4_data(submission.url.split('/')[3], tw_access_token)
+        except IndexError:
+            #found post without a link
+            continue
 
         regex = re.compile('[^a-zA-Z0-9_]')
         clip_title = clip_title.replace(' ', '_')
