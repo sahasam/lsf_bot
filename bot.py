@@ -41,7 +41,7 @@ if __name__ == "__main__" :
                         user_agent=config['reddit oauth']['user_agent'])
 
     subreddit = reddit.subreddit('LivestreamFail')
-    hot_lsf= subreddit.hot(limit=2)
+    hot_lsf= subreddit.hot(limit=5)
 
     for submission in hot_lsf :
         try:
@@ -49,6 +49,6 @@ if __name__ == "__main__" :
                                 config['twitch oauth']['client_id'], 
                                 access_token, 
                                 DOWNLAOD_FOLDER)
-        except IndexError:
+        except KeyError:
             #invalid link
             continue
