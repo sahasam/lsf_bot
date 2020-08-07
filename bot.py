@@ -9,6 +9,8 @@ import urllib.request
 config = configparser.ConfigParser()
 config.read("config.ini")
 
+DOWNLAOD_FOLDER = os.path.join(os.path.dirname(__file__), "downloads")
+
 reddit = praw.Reddit(client_id=config['reddit oauth']['client_id'],
                     client_secret=config['reddit oauth']['client_secret'],
                     username=config['reddit oauth']['username'],
@@ -17,8 +19,8 @@ reddit = praw.Reddit(client_id=config['reddit oauth']['client_id'],
 
 auth_response = requests.post(
     'https://id.twitch.tv/oauth2/token',
-    data={"client_id": 'b9rd7sja03tjfxs7vv1gwk2ep4hh2w',
-            "client_secret": 'e9gqrs4uvgosodwg2qxjviy8jqxa83',
+    data={"client_id": config['twitch oauth']['client_id'],
+            "client_secret": config['twitch oauth']['client_secret'],
             "grant_type": "client_credentials"}).json()
 
 try:
@@ -28,7 +30,6 @@ except KeyError as e:
     print("failed to get access token from twitch.tv: {e}")
     sys.exit(1)
 
-DOWNLAOD_FOLDER = os.path.join(os.path.dirname(__file__), "downloads")
 
 def retrieve_mp4_data(slug):
     #https://github.com/amiechen/twitch-batch-loader/blob/master/batchloader.py
