@@ -19,33 +19,12 @@ import urllib.request
 
 from docopt import docopt
 
+from clip_downloader import get_twitch_authorization
+
 config = configparser.ConfigParser()
 config.read("config.ini")
 
 DOWNLAOD_FOLDER = os.path.join(os.path.dirname(__file__), "downloads")
-
-def get_authorizations() :
-    reddit = praw.Reddit(client_id=config['reddit oauth']['client_id'],
-                        client_secret=config['reddit oauth']['client_secret'],
-                        username=config['reddit oauth']['username'],
-                        password=config['reddit oauth']['password'],
-                        user_agent=config['reddit oauth']['user_agent'])
-
-    auth_response = requests.post(
-        'https://id.twitch.tv/oauth2/token',
-        data={"client_id": config['twitch oauth']['client_id'],
-            "client_secret": config['twitch oauth']['client_secret'],
-            "grant_type": "client_credentials"}).json()
-
-    try:
-        access_token = auth_response['access_token']
-    except KeyError as e:
-        print(auth_response)
-        print(f"failed to get access token from twitch.tv: {e}")
-        sys.exit(1)
-    
-    return reddit, access_token
-
 
 def retrieve_mp4_data(slug, access_token):
     #https://github.com/amiechen/twitch-batch-loader/blob/master/batchloader.py
@@ -72,7 +51,14 @@ if __name__ == "__main__" :
     args = docopt(__doc__, version="lsfbot v1.0.0")     
     print(args)
 
-    reddit, tw_access_token = get_authorizations()
+    access_token = get_twitch_authorization(tcid=config['twitch oauth']['client_id'],
+                                           tcs=config['twitch oauth']['client_secret'])
+
+    reddit = praw.Reddit(client_id=config['reddit oauth']['client_id'],
+                        client_secret=config['reddit oauth']['client_secret'],
+                        username=config['reddit oauth']['username'],
+                        password=config['reddit oauth']['password'],
+                        user_agent=config['reddit oauth']['user_agent'])
 
     subreddit = reddit.subreddit('LivestreamFail')
     hot_lsf= subreddit.hot(limit=2)
@@ -81,7 +67,7 @@ if __name__ == "__main__" :
         slug = submission.url.split('/')[3]
 
         try:
-            mp4_url, clip_title = retrieve_mp4_data(submission.url.split('/')[3], tw_access_token)
+            mp4_url, clip_title = retrieve_mp4_data(submission.url.split('/')[3], access_token)
         except IndexError:
             #found post without a link
             continue
