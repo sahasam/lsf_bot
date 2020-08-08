@@ -9,6 +9,7 @@ Usage:
 
 `python clip_downloader.py -c [client-id] -s [client-secret] -- [link1] [link2]...`
 
+
 if the client-id, or the client-secret are not specified, then it will pull the information from the config file.
 This may be useful if you don't want to dig up your client-id/client-secret every time you want to download something
 
