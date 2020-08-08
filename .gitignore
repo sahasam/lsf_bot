@@ -1,0 +1,6 @@
+#folders
+downloads/
+downloads/*
+
+#config files
+config.ini
