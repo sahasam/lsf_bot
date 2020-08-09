@@ -1,6 +1,8 @@
 #folders
 downloads/
 downloads/*
+__pycache__/
+__pycache__/*
 
 #config files
 config.ini
