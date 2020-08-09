@@ -23,13 +23,5 @@ if the folder does not exist, the program will throw an error and stop (will fix
 ### Setup
 In order to use `clip_downloader.py`, you need to get the oauth tokens from twitch.tv
 
-<<<<<<< Updated upstream
-#### Step 1:
-go to https://dev.twitch.tv/console/ and register your app to get a client-id, and client-secret
-
-#### Step 2:
-copy and paste your client-id, and client-secret into the values in `config.ini`
-=======
 1. go to https://dev.twitch.tv/console/ and register your app to get a client-id, and client-secret
 2. copy and paste your client-id, and client-secret into the values in `config.ini`
->>>>>>> Stashed changes
