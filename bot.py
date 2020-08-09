@@ -45,7 +45,7 @@ if __name__ == "__main__" :
     subreddit = reddit.subreddit('LivestreamFail')
     hot_lsf= subreddit.hot(limit=2)
 
-    filepaths = []
+    videoclips = []
     for submission in hot_lsf :
         try:
             output_path = download_mp4_from_link(submission.url, 
@@ -56,6 +56,7 @@ if __name__ == "__main__" :
             print(f"invalid link: {submission.url}")
             continue
         
-        filepaths.append(output_path)
+        videoclips.append(VideoFileClip(output_path))
 
-        print(filepaths)
+    finalclip = concatenate_videoclips(videoclips)
+    finalclip.write_videofile("final compilation.mp4")
