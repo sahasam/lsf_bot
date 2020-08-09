@@ -17,6 +17,9 @@ import requests
 import sys
 import urllib.request
 
+import queue
+import threading
+
 from docopt import docopt
 
 from clip_downloader import get_twitch_authorization
@@ -29,9 +32,27 @@ config.read("config.ini")
 
 DOWNLAOD_FOLDER = os.path.join(os.path.dirname(__file__), "downloads")
 
+lock = threading.Lock()
+download_queue = queue.Queue()
+
+def download_worker_thread(tw_client_id, access_token, videoclips ) :
+    url = download_queue.get()
+    try:
+        output_path = download_mp4_from_link(url, 
+                            tw_client_id, 
+                            access_token, 
+                            DOWNLAOD_FOLDER)
+    except KeyError:
+        print(f"invalid link: {url}")
+        return
+
+    lock.acquire()
+    videoclips.append(VideoFileClip(output_path))
+    lock.release()
+    download_queue.task_done()
+
 if __name__ == "__main__" :
     args = docopt(__doc__, version="lsfbot v1.0.0")     
-    print(args)
 
     access_token = get_twitch_authorization(tcid=config['twitch oauth']['client_id'],
                                            tcs=config['twitch oauth']['client_secret'])
@@ -46,17 +67,17 @@ if __name__ == "__main__" :
     hot_lsf= subreddit.hot(limit=2)
 
     videoclips = []
+
+    t1 = threading.Thread(target=download_worker_thread, args=(config['twitch oauth']['client_id'], access_token, videoclips))
+    t2 = threading.Thread(target=download_worker_thread, args=(config['twitch oauth']['client_id'], access_token, videoclips))
+    t1.start()
+    t2.start()
+
     for submission in hot_lsf :
-        try:
-            output_path = download_mp4_from_link(submission.url, 
-                                config['twitch oauth']['client_id'], 
-                                access_token, 
-                                DOWNLAOD_FOLDER)
-        except KeyError:
-            print(f"invalid link: {submission.url}")
-            continue
-        
-        videoclips.append(VideoFileClip(output_path))
+        download_queue.put(submission.url)
+    
+    t1.join()
+    t2.join()
 
     finalclip = concatenate_videoclips(videoclips)
     finalclip.write_videofile("final compilation.mp4")
