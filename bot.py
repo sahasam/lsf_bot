@@ -21,6 +21,8 @@ from docopt import docopt
 
 from clip_downloader import get_twitch_authorization
 from clip_downloader import download_mp4_from_link
+from moviepy.editor import VideoFileClip
+from moviepy.editor import concatenate_videoclips
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -41,14 +43,19 @@ if __name__ == "__main__" :
                         user_agent=config['reddit oauth']['user_agent'])
 
     subreddit = reddit.subreddit('LivestreamFail')
-    hot_lsf= subreddit.hot(limit=5)
+    hot_lsf= subreddit.hot(limit=2)
 
+    filepaths = []
     for submission in hot_lsf :
         try:
-            download_mp4_from_link(submission.url, 
+            output_path = download_mp4_from_link(submission.url, 
                                 config['twitch oauth']['client_id'], 
                                 access_token, 
                                 DOWNLAOD_FOLDER)
         except KeyError:
-            #invalid link
+            print(f"invalid link: {submission.url}")
             continue
+        
+        filepaths.append(output_path)
+
+        print(filepaths)

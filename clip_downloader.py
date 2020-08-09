@@ -40,7 +40,7 @@ def get_twitch_authorization(tcid, tcs) :
 
 def download_mp4_from_link(link, cid, access_token, output_dir) :
     slug = link.split('/')[-1]
-    download_mp4_from_slug(slug, cid, access_token, output_dir)
+    return download_mp4_from_slug(slug, cid, access_token, output_dir)
     
 def download_mp4_from_slug(slug, cid, access_token, output_dir) :
     #https://github.com/amiechen/twitch-batch-loader/blob/master/batchloader.py
@@ -48,7 +48,12 @@ def download_mp4_from_slug(slug, cid, access_token, output_dir) :
         "https://api.twitch.tv/helix/clips?id=" + slug,
         headers={"Client-ID": cid, 'Authorization': f'Bearer {access_token}'}).json()
 
-    thumb_url = clip_info['data'][0]['thumbnail_url']
+    try:
+        thumb_url = clip_info['data'][0]['thumbnail_url']
+    except IndexError:
+        print(clip_info)
+        return ""
+
     slice_point = thumb_url.index("-preview-")
     mp4_url = thumb_url[:slice_point] + '.mp4'
 
@@ -61,6 +66,8 @@ def download_mp4_from_slug(slug, cid, access_token, output_dir) :
 
     print(f"\nDownloading {title} -> {output_path}")
     urllib.request.urlretrieve(mp4_url, output_path, reporthook=dl_progress)
+
+    return output_path
 
 #https://github.com/amiechen/twitch-batch-loader/blob/master/batchloader.py
 def dl_progress (count, block_size, total_size) :
@@ -80,7 +87,7 @@ if __name__ == "__main__" :
     access_token = get_twitch_authorization(twitch_client_id, twitch_client_secret)
     for link in args['<link>'] :
         try:
-            download_mp4_from_link(link, twitch_client_id, access_token, output_dir)
+            output_path = download_mp4_from_link(link, twitch_client_id, access_token, output_dir)
         except KeyError:
-            print("invalid link")
+            print(f"invalid link: {link}")
             continue
