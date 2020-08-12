@@ -19,7 +19,15 @@ import urllib.request
 
 from docopt import docopt
 
+download_queue = queue.Queue()
+
 def get_twitch_authorization(tcid, tcs) :
+    """
+    get the access token to access twitch REST APIs.
+
+    tcid: twitch client id
+    tcs: twitch client secret
+    """
     auth_response = requests.post(
         'https://id.twitch.tv/oauth2/token',
         data = {
@@ -35,14 +43,33 @@ def get_twitch_authorization(tcid, tcs) :
         print("server response: ", auth_response)
         print(f"failed to get access token from twitch.tv: {e}")
         sys.exit(1)
-    
+
     return access_token
 
+
 def download_mp4_from_link(link, cid, access_token, output_dir) :
+    """
+    download an mp4 of a twitch link from a full https://clips.twitch.tv...
+    or https://twitch.tv/clips/... link.
+
+    link: url string
+    cid: twitch client id
+    access_token: twitch access token
+    output_dir: location to download mp4s
+    """
     slug = link.split('/')[-1]
     return download_mp4_from_slug(slug, cid, access_token, output_dir)
-    
+
 def download_mp4_from_slug(slug, cid, access_token, output_dir) :
+    """
+    download an mp4 of a twitch link from a slug. This is usually the
+    last part of a https://clips.twitch.tv link
+
+    slu: slug string
+    cid: twitch client id
+    access_token: twitch access token
+    output_dir: location to download mp4s
+    """
     #https://github.com/amiechen/twitch-batch-loader/blob/master/batchloader.py
     clip_info = requests.get(
         "https://api.twitch.tv/helix/clips?id=" + slug,
@@ -69,8 +96,12 @@ def download_mp4_from_slug(slug, cid, access_token, output_dir) :
 
     return output_path
 
+
 #https://github.com/amiechen/twitch-batch-loader/blob/master/batchloader.py
 def dl_progress (count, block_size, total_size) :
+    """
+    shows download progress (not currently working for multithreaded downloads)
+    """
     percent = int(count * block_size * 100 / total_size)
     sys.stdout.write("\r...%d%%" % percent)
     sys.stdout.flush()
