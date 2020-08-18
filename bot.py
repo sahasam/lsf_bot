@@ -10,6 +10,7 @@ Options:
     -t, --time <time>                   specify the length of the compilation 
 """
 import configparser
+import time
 import os
 import praw
 import re
@@ -17,7 +18,6 @@ import requests
 import sys
 import urllib.request
 
-import queue
 import threading
 
 from docopt import docopt
@@ -32,27 +32,8 @@ config.read("config.ini")
 
 DOWNLAOD_FOLDER = os.path.join(os.path.dirname(__file__), "downloads")
 
-lock = threading.Lock()
-download_queue = queue.Queue()
-
-def download_worker_thread(tw_client_id, access_token, videoclips ) :
-    url = download_queue.get()
-    try:
-        output_path = download_mp4_from_link(url, 
-                            tw_client_id, 
-                            access_token, 
-                            DOWNLAOD_FOLDER)
-    except KeyError:
-        print(f"invalid link: {url}")
-        return
-
-    lock.acquire()
-    videoclips.append(VideoFileClip(output_path))
-    lock.release()
-    download_queue.task_done()
-
 if __name__ == "__main__" :
-    args = docopt(__doc__, version="lsfbot v1.0.0")     
+    args = docopt(__doc__, version="lsfbot v1.0.0")
 
     access_token = get_twitch_authorization(tcid=config['twitch oauth']['client_id'],
                                            tcs=config['twitch oauth']['client_secret'])
@@ -64,20 +45,15 @@ if __name__ == "__main__" :
                         user_agent=config['reddit oauth']['user_agent'])
 
     subreddit = reddit.subreddit('LivestreamFail')
-    hot_lsf= subreddit.hot(limit=2)
+    hot_lsf= subreddit.hot(limit=5)
 
     videoclips = []
 
-    t1 = threading.Thread(target=download_worker_thread, args=(config['twitch oauth']['client_id'], access_token, videoclips))
-    t2 = threading.Thread(target=download_worker_thread, args=(config['twitch oauth']['client_id'], access_token, videoclips))
-    t1.start()
-    t2.start()
-
     for submission in hot_lsf :
-        download_queue.put(submission.url)
-    
-    t1.join()
-    t2.join()
+        output_path = download_mp4_from_link(submission.url,
+                            cid = config['twitch oauth']['client_id'],
+                            access_token = access_token,
+                            output_dir = DOWNLAOD_FOLDER)
 
     finalclip = concatenate_videoclips(videoclips)
     finalclip.write_videofile("final compilation.mp4")

@@ -19,8 +19,6 @@ import urllib.request
 
 from docopt import docopt
 
-download_queue = queue.Queue()
-
 def get_twitch_authorization(tcid, tcs) :
     """
     get the access token to access twitch REST APIs.
@@ -58,6 +56,7 @@ def download_mp4_from_link(link, cid, access_token, output_dir) :
     output_dir: location to download mp4s
     """
     slug = link.split('/')[-1]
+    print(slug)
     return download_mp4_from_slug(slug, cid, access_token, output_dir)
 
 def download_mp4_from_slug(slug, cid, access_token, output_dir) :
@@ -88,8 +87,11 @@ def download_mp4_from_slug(slug, cid, access_token, output_dir) :
 
     regex = re.compile('[^a-zA-Z0-9_]')
     title = title.replace(' ', '_')
-    out_filename = regex.sub('', title) + '.mp4'
+    cleaned_title = regex.sub('', title)
+    out_filename = f"{cleaned_title}.mp4" if not len(cleaned_title) == 0 else f"{slug}.mp4"
+
     output_path = os.path.join(output_dir, out_filename)
+    print("output_path: ", output_path)
 
     print(f"\nDownloading {title} -> {output_path}")
     urllib.request.urlretrieve(mp4_url, output_path, reporthook=dl_progress)
@@ -110,7 +112,6 @@ if __name__ == "__main__" :
     args = docopt(__doc__, version="lsfbot v1.0.0")
     config = configparser.ConfigParser()
     config.read("config.ini")
-
     twitch_client_id = args['--client-id'] if args['--client-id'] is not None else config['twitch oauth']['client_id']
     twitch_client_secret = args['--client-secret'] if args['--client-secret'] is not None else config['twitch oauth']['client_secret']
     output_dir = args['--output-file']
